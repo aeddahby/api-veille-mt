@@ -1,0 +1,8 @@
+{
+  "generator-jhipster:7.8.1": {
+    "promptValues": {
+      "packageName": "ma.iam.wissal.veille",
+      "nativeLanguage": "fr"
+    }
+  }
+}
