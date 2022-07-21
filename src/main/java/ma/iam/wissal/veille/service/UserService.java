@@ -288,10 +288,16 @@ public class UserService {
 
     /**
      * Gets a list of all the authorities.
+     *
      * @return a list of all the authorities.
      */
     @Transactional(readOnly = true)
     public List<String> getAuthorities() {
         return authorityRepository.findAll().stream().map(Authority::getName).collect(Collectors.toList());
+    }
+
+    public User findOneByLogin(String login) {
+        Optional<User> userOptional = userRepository.findOneByLogin(login.toLowerCase());
+        if (userOptional.isPresent()) return userOptional.get(); else return null;
     }
 }

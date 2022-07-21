@@ -4,7 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import ma.iam.wissal.veille.domain.Ticket;
 import ma.iam.wissal.veille.domain.User;
+import ma.iam.wissal.veille.domain.enumeration.PhaseValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -28,6 +30,10 @@ public class MailService {
     private final Logger log = LoggerFactory.getLogger(MailService.class);
 
     private static final String USER = "user";
+
+    private static final String TICKET = "ticket";
+
+    private static final String ENTITY = "entity";
 
     private static final String BASE_URL = "baseUrl";
 
@@ -93,9 +99,115 @@ public class MailService {
     }
 
     @Async
+    public void sendEmailTicketFromTemplate(
+        User user,
+        Ticket ticket,
+        String templateName,
+        String titleKey,
+        PhaseValidation phaseValidation
+    ) {
+        if (user.getEmail() == null) {
+            log.debug("Email doesn't exist for user '{}'", user.getLogin());
+            return;
+        }
+        Locale locale = Locale.forLanguageTag(user.getLangKey());
+        Context context = new Context(locale);
+        context.setVariable(USER, user);
+        if (!phaseValidation.equals(PhaseValidation.CREATED)) context.setVariable(ENTITY, ticket.getEntity());
+        context.setVariable(TICKET, ticket);
+        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        String content = templateEngine.process(templateName, context);
+        String subject = null;
+        switch (phaseValidation) {
+            case CREATED:
+                subject = messageSource.getMessage(titleKey, new Object[] { user.getFirstName() + " " + user.getLastName() }, locale);
+                break;
+            case MODIFICATION_CONTRIBUTEUR:
+                subject = messageSource.getMessage(titleKey, new Object[] { user.getFirstName() + " " + user.getLastName() }, locale);
+                break;
+            case VALIDATION_ANIMATEUR_CENTRALE:
+                subject = messageSource.getMessage(titleKey, new Object[] { ticket.getEntity().getTitle() }, locale);
+            case VALIDATION_RELAIS_CENTRALE:
+                subject = messageSource.getMessage(titleKey, null, locale);
+            case SUPPRESSION_CONTRIBUTEUR:
+                subject = messageSource.getMessage(titleKey, new Object[] { user.getFirstName() + " " + user.getLastName() }, locale);
+                break;
+            default:
+                subject = messageSource.getMessage(titleKey, null, locale);
+        }
+        sendEmail(user.getEmail(), subject, content, false, true);
+    }
+
+    @Async
     public void sendActivationEmail(User user) {
         log.debug("Sending activation email to '{}'", user.getEmail());
         sendEmailFromTemplate(user, "mail/activationEmail", "email.activation.title");
+    }
+
+    @Async
+    public void sendTicketCreationEmail(User user, Ticket ticket) {
+        log.debug("Sending Ticket Creation email to '{}'", user.getEmail());
+        sendEmailTicketFromTemplate(user, ticket, "mail/ticketCreationEmail", "email.ticket.creation.title", PhaseValidation.CREATED);
+    }
+
+    @Async
+    public void sendTicketModificationEmail(User user, Ticket ticket) {
+        log.debug("Sending Ticket Modification email to '{}'", user.getEmail());
+        sendEmailTicketFromTemplate(
+            user,
+            ticket,
+            "mail/ticketModificationEmail",
+            "email.ticket.modification.title",
+            PhaseValidation.MODIFICATION_CONTRIBUTEUR
+        );
+    }
+
+    @Async
+    public void sendTicketValidationAnimCentraleEmail(User user, Ticket ticket) {
+        log.debug("Sending Ticket Validation email to '{}'", user.getEmail());
+        sendEmailTicketFromTemplate(
+            user,
+            ticket,
+            "mail/ticketValidationAnimCentraleEmail",
+            "email.ticket.validation.anim.central.title",
+            PhaseValidation.VALIDATION_ANIMATEUR_CENTRALE
+        );
+    }
+
+    @Async
+    public void sendTicketClotureRelaisCentraleEmail(User user, Ticket ticket) {
+        log.debug("Sending Ticket Cloture email to '{}'", user.getEmail());
+        sendEmailTicketFromTemplate(
+            user,
+            ticket,
+            "mail/ticketValidationRelaisCentraleEmail",
+            "email.ticket.cloture.relais.central.title",
+            PhaseValidation.VALIDATION_RELAIS_CENTRALE
+        );
+    }
+
+    @Async
+    public void sendTicketSuppressionEmail(User user, Ticket ticket) {
+        log.debug("Sending Ticket Suppression email to '{}'", user.getEmail());
+        sendEmailTicketFromTemplate(
+            user,
+            ticket,
+            "mail/ticketSuppressionEmail",
+            "email.ticket.suppression.title",
+            PhaseValidation.SUPPRESSION_CONTRIBUTEUR
+        );
+    }
+
+    @Async
+    public void sendTicketValidationRelaisRegionaleEmail(User user, Ticket ticket) {
+        log.debug("Sending Ticket validation email to '{}'", user.getEmail());
+        sendEmailTicketFromTemplate(
+            user,
+            ticket,
+            "mail/ticketValidationRelaisRegionaleEmail",
+            "email.ticket.validation.relais.regional.title",
+            PhaseValidation.VALIDATION_RELAIS_REGIONALE
+        );
     }
 
     @Async

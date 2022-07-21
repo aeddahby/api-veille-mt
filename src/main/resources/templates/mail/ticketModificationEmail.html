@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
+  <head>
+    <title th:text="#{email.ticket.modification.title(${user.firstName}) (${user.firstName})}">ticket modification</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}" />
+  </head>
+  <body>
+    <p th:text="#{email.activation.greeting(${user.login})}">Bonjour</p>
+    <p th:text="#{email.ticket.modification.text1}">Une remontée sur la plateforme, avec les information ci-dessous a été modifiéé:</p>
+    <p th:text="#{email.ticket.modification.central.unite.name(${entity.title})}">ticket entite centrale</p>
+    <p th:text="#{email.ticket.creation.title.name(${ticket.object})}">ticket title</p>
+    <p th:text="#{email.ticket.creation.link.name}">ticket link</p>
+    <p>
+      <a th:with="url=(@{|${baseUrl}/tickets/${ticket.id}|})" th:href="${url}" th:text="${url}">ticket link</a>
+    </p>
+    <p th:text="#{email.ticket.creation.description.name(${ticket.description})}">ticket description</p>
+    <p>
+      <span th:text="#{email.ticket.creation.text2}">Cordialement, </span>
+      <br />
+      <em th:text="#{email.ticket.signature}">Equipe Veille.</em>
+    </p>
+  </body>
+</html>

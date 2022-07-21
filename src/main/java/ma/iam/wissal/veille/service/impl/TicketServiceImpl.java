@@ -2,12 +2,16 @@ package ma.iam.wissal.veille.service.impl;
 
 import java.util.Optional;
 import ma.iam.wissal.veille.domain.Ticket;
+import ma.iam.wissal.veille.domain.User;
 import ma.iam.wissal.veille.repository.TicketRepository;
+import ma.iam.wissal.veille.service.MailService;
 import ma.iam.wissal.veille.service.TicketService;
+import ma.iam.wissal.veille.service.UserService;
 import ma.iam.wissal.veille.service.dto.TicketDTO;
 import ma.iam.wissal.veille.service.mapper.TicketMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,24 +30,45 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketMapper ticketMapper;
 
-    public TicketServiceImpl(TicketRepository ticketRepository, TicketMapper ticketMapper) {
+    private MailService mailService;
+
+    private UserService userService;
+
+    public TicketServiceImpl(
+        TicketRepository ticketRepository,
+        TicketMapper ticketMapper,
+        MailService mailService,
+        UserService userService
+    ) {
         this.ticketRepository = ticketRepository;
         this.ticketMapper = ticketMapper;
+        this.mailService = mailService;
+        this.userService = userService;
     }
 
     @Override
     public TicketDTO save(TicketDTO ticketDTO) {
         log.debug("Request to save Ticket : {}", ticketDTO);
         Ticket ticket = ticketMapper.toEntity(ticketDTO);
+        User recipient = userService.findOneByLogin(ticket.getCentralAnimator());
         ticket = ticketRepository.save(ticket);
+        if (recipient != null) {
+            mailService.sendTicketCreationEmail(recipient, ticket);
+        }
+
         return ticketMapper.toDto(ticket);
     }
 
     @Override
     public TicketDTO update(TicketDTO ticketDTO) {
         log.debug("Request to save Ticket : {}", ticketDTO);
+
         Ticket ticket = ticketMapper.toEntity(ticketDTO);
         ticket = ticketRepository.save(ticket);
+        /*User recipient = userService.findOneByLogin(ticket.getCentralAnimator());
+        if (recipient != null) {
+            mailService.sendTicketModificationEmail(recipient, ticket);
+        }*/
         return ticketMapper.toDto(ticket);
     }
 
