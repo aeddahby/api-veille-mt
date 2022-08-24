@@ -72,15 +72,15 @@ public class Ticket implements Serializable {
     private Boolean pertinence;
 
     @OneToOne
-    @JoinColumn(unique = true)
+    @JoinColumn(unique = false)
     private DirectionRegionale directionRegionale;
 
     @OneToOne
-    @JoinColumn(unique = true)
+    @JoinColumn(unique = false)
     private Category category;
 
     @OneToOne
-    @JoinColumn(unique = true)
+    @JoinColumn(unique = false)
     private EntityM entity;
 
     @OneToMany(mappedBy = "ticket")

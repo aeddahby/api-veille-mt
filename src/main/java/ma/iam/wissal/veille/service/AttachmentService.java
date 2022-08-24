@@ -2,9 +2,13 @@ package ma.iam.wissal.veille.service;
 
 import java.util.Optional;
 import ma.iam.wissal.veille.domain.Attachment;
+import ma.iam.wissal.veille.domain.Ticket;
 import ma.iam.wissal.veille.repository.AttachmentRepository;
 import ma.iam.wissal.veille.service.dto.AttachmentDTO;
+import ma.iam.wissal.veille.service.dto.TicketDTO;
 import ma.iam.wissal.veille.service.mapper.AttachmentMapper;
+import ma.iam.wissal.veille.service.mapper.TicketMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -24,10 +28,14 @@ public class AttachmentService {
     private final AttachmentRepository attachmentRepository;
 
     private final AttachmentMapper attachmentMapper;
-
-    public AttachmentService(AttachmentRepository attachmentRepository, AttachmentMapper attachmentMapper) {
+    
+    private final TicketMapper ticketMapper;
+    
+    public AttachmentService(AttachmentRepository attachmentRepository, AttachmentMapper attachmentMapper,
+    		TicketMapper ticketMapper) {
         this.attachmentRepository = attachmentRepository;
         this.attachmentMapper = attachmentMapper;
+        this.ticketMapper = ticketMapper;
     }
 
     /**
@@ -100,6 +108,12 @@ public class AttachmentService {
         return attachmentRepository.findById(id).map(attachmentMapper::toDto);
     }
 
+    public Optional<AttachmentDTO> findOneByTicket(TicketDTO ticketDTO) {
+    	
+        log.debug("Request to get Attachment by Ticket : {}", ticketDTO.getId());
+        Ticket ticket = ticketMapper.toEntity(ticketDTO);
+        return attachmentRepository.findByTicket(ticket).map(attachmentMapper::toDto);
+    }
     /**
      * Delete the attachment by id.
      *

@@ -106,6 +106,7 @@ public class LoggingAspect {
             if (log.isDebugEnabled()) {
                 log.debug("Exit: {}() with result = {}", joinPoint.getSignature().getName(), result);
             }
+
             return result;
         } catch (IllegalArgumentException e) {
             log.error("Illegal argument: {} in {}()", Arrays.toString(joinPoint.getArgs()), joinPoint.getSignature().getName());

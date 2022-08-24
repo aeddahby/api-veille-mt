@@ -5,6 +5,9 @@ import ma.iam.wissal.veille.domain.Ticket;
 import ma.iam.wissal.veille.domain.User;
 import ma.iam.wissal.veille.repository.TicketRepository;
 import ma.iam.wissal.veille.service.MailService;
+import ma.iam.wissal.veille.security.AuthoritiesConstants;
+import ma.iam.wissal.veille.security.SecurityUtils;
+import ma.iam.wissal.veille.service.DirectionRegionaleService;
 import ma.iam.wissal.veille.service.TicketService;
 import ma.iam.wissal.veille.service.UserService;
 import ma.iam.wissal.veille.service.dto.TicketDTO;
@@ -34,12 +37,15 @@ public class TicketServiceImpl implements TicketService {
 
     private UserService userService;
 
+    @Autowired
+    private DirectionRegionaleService directionRegionaleService;
+    
     public TicketServiceImpl(
-        TicketRepository ticketRepository,
-        TicketMapper ticketMapper,
-        MailService mailService,
-        UserService userService
-    ) {
+            TicketRepository ticketRepository,
+            TicketMapper ticketMapper,
+            MailService mailService,
+            UserService userService
+        ) {
         this.ticketRepository = ticketRepository;
         this.ticketMapper = ticketMapper;
         this.mailService = mailService;
@@ -88,10 +94,24 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
+    
     @Transactional(readOnly = true)
     public Page<TicketDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Tickets");
-        return ticketRepository.findAll(pageable).map(ticketMapper::toDto);
+        
+        if(SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ANIMATEUR_CENTRAL))
+        	return ticketRepository.findAll(pageable).map(ticketMapper::toDto);
+        
+        if(SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.CONTRIBUTEUR))
+        	return ticketRepository.findAllByContributor(pageable, SecurityUtils.getCurrentUserLogin()).map(ticketMapper::toDto);
+       
+       //if(SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.RELAIS_CENTRAL))
+        	//return ticketRepository.findAllByEntityID(pageable, directionRegionaleService.getOneByUser(SecurityUtils.getCurrentUserLogin()).map(ticketMapper::toDto)).map(ticketMapper::toDto);
+        
+      //  if(SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.RELAIS_REGIONAL))
+      //  	return ticketRepository.findAllByDirectionRegionaleID(pageable, SecurityUtils.getCurrentUserLogin()).map(ticketMapper::toDto);
+        	
+        return null;
     }
 
     public Page<TicketDTO> findAllWithEagerRelationships(Pageable pageable) {

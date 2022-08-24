@@ -3,6 +3,8 @@ package ma.iam.wissal.veille.repository;
 import java.util.List;
 import java.util.Optional;
 import ma.iam.wissal.veille.domain.Ticket;
+import ma.iam.wissal.veille.service.dto.TicketDTO;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
@@ -41,4 +43,10 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
         "select ticket from Ticket ticket left join fetch ticket.directionRegionale left join fetch ticket.category left join fetch ticket.entity where ticket.id =:id"
     )
     Optional<Ticket> findOneWithToOneRelationships(@Param("id") Long id);
+
+	Page<Ticket> findAllByContributor(Pageable pageable, Optional<String> currentUserLogin);
+
+/*	Page<Ticket> findAllByEntityID(Pageable pageable, Optional<String> currentUserLogin);*/
+
+/*	Page<Ticket> findAllByDirectionRegionaleId(Pageable pageable, Optional<String> currentUserLogin);*/
 }

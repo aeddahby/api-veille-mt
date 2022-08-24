@@ -5,8 +5,15 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import ma.iam.wissal.veille.domain.enumeration.StateTicket;
+import ma.iam.wissal.veille.domain.enumeration.Status;
 import ma.iam.wissal.veille.repository.TicketRepository;
+import ma.iam.wissal.veille.security.SecurityUtils;
+import ma.iam.wissal.veille.service.AttachmentService;
+import ma.iam.wissal.veille.service.DirectionRegionaleService;
 import ma.iam.wissal.veille.service.TicketService;
+import ma.iam.wissal.veille.service.dto.AttachmentDTO;
 import ma.iam.wissal.veille.service.dto.TicketDTO;
 import ma.iam.wissal.veille.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
@@ -40,10 +47,17 @@ public class TicketResource {
     private final TicketService ticketService;
 
     private final TicketRepository ticketRepository;
+    
+    private final DirectionRegionaleService directionRegionaleService;
+    
+    private final AttachmentService attachmentService;
 
-    public TicketResource(TicketService ticketService, TicketRepository ticketRepository) {
+    public TicketResource(TicketService ticketService, TicketRepository ticketRepository, DirectionRegionaleService directionRegionaleService
+    		, AttachmentService attachmentService) {
         this.ticketService = ticketService;
         this.ticketRepository = ticketRepository;
+        this.directionRegionaleService = directionRegionaleService;
+        this.attachmentService = attachmentService;
     }
 
     /**
@@ -59,7 +73,18 @@ public class TicketResource {
         if (ticketDTO.getId() != null) {
             throw new BadRequestAlertException("A new ticket cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        ticketDTO.setContributor(SecurityUtils.getCurrentUserLogin().get());
+        ticketDTO.setDirectionRegionale(directionRegionaleService.getOneByUser(SecurityUtils.getCurrentUserLogin().get()).get());
+        ticketDTO.setStateTicket(StateTicket.OPENED);
+        ticketDTO.setStatusTicket(Status.CREATED);
+        
+        AttachmentDTO attachmentDTO = new AttachmentDTO();
+        attachmentDTO.setAttach(ticketDTO.getAttach());
+        attachmentDTO.setAttachContentType(ticketDTO.getAttachContentType());
         TicketDTO result = ticketService.save(ticketDTO);
+        attachmentDTO.setTicket(result);
+        attachmentService.save(attachmentDTO);
+        
         return ResponseEntity
             .created(new URI("/api/tickets/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
@@ -92,8 +117,13 @@ public class TicketResource {
         if (!ticketRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
-
+        
         TicketDTO result = ticketService.update(ticketDTO);
+        Optional<AttachmentDTO> attachmentDTO = attachmentService.findOneByTicket(ticketDTO);
+        attachmentDTO.get().setAttach(ticketDTO.getAttach());
+        attachmentDTO.get().setAttachContentType(ticketDTO.getAttachContentType());
+        attachmentService.update(attachmentDTO.get());
+
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, ticketDTO.getId().toString()))
@@ -151,7 +181,7 @@ public class TicketResource {
         log.debug("REST request to get a page of Tickets");
         Page<TicketDTO> page;
         if (eagerload) {
-            page = ticketService.findAllWithEagerRelationships(pageable);
+            page = ticketService.findAll(pageable);
         } else {
             page = ticketService.findAll(pageable);
         }
@@ -169,6 +199,9 @@ public class TicketResource {
     public ResponseEntity<TicketDTO> getTicket(@PathVariable Long id) {
         log.debug("REST request to get Ticket : {}", id);
         Optional<TicketDTO> ticketDTO = ticketService.findOne(id);
+        Optional<AttachmentDTO> attachmentDTO  = attachmentService.findOneByTicket(ticketDTO.get());
+        ticketDTO.get().setAttach(attachmentDTO.get().getAttach());
+        ticketDTO.get().setAttachContentType(attachmentDTO.get().getAttachContentType());
         return ResponseUtil.wrapOrNotFound(ticketDTO);
     }
 
