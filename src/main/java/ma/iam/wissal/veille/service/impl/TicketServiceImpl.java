@@ -3,11 +3,12 @@ package ma.iam.wissal.veille.service.impl;
 import java.util.Optional;
 import ma.iam.wissal.veille.domain.Ticket;
 import ma.iam.wissal.veille.domain.User;
+import ma.iam.wissal.veille.domain.enumeration.Status;
 import ma.iam.wissal.veille.repository.TicketRepository;
-import ma.iam.wissal.veille.service.MailService;
 import ma.iam.wissal.veille.security.AuthoritiesConstants;
 import ma.iam.wissal.veille.security.SecurityUtils;
 import ma.iam.wissal.veille.service.DirectionRegionaleService;
+import ma.iam.wissal.veille.service.MailService;
 import ma.iam.wissal.veille.service.TicketService;
 import ma.iam.wissal.veille.service.UserService;
 import ma.iam.wissal.veille.service.dto.TicketDTO;
@@ -39,13 +40,13 @@ public class TicketServiceImpl implements TicketService {
 
     @Autowired
     private DirectionRegionaleService directionRegionaleService;
-    
+
     public TicketServiceImpl(
-            TicketRepository ticketRepository,
-            TicketMapper ticketMapper,
-            MailService mailService,
-            UserService userService
-        ) {
+        TicketRepository ticketRepository,
+        TicketMapper ticketMapper,
+        MailService mailService,
+        UserService userService
+    ) {
         this.ticketRepository = ticketRepository;
         this.ticketMapper = ticketMapper;
         this.mailService = mailService;
@@ -56,12 +57,12 @@ public class TicketServiceImpl implements TicketService {
     public TicketDTO save(TicketDTO ticketDTO) {
         log.debug("Request to save Ticket : {}", ticketDTO);
         Ticket ticket = ticketMapper.toEntity(ticketDTO);
-        User recipient = userService.findOneByLogin(ticket.getCentralAnimator());
+        //        User recipient = userService.findOneByLogin(ticket.getCentralAnimator());
         ticket = ticketRepository.save(ticket);
-        if (recipient != null) {
+        /**        if (recipient != null) {
             mailService.sendTicketCreationEmail(recipient, ticket);
         }
-
+**/
         return ticketMapper.toDto(ticket);
     }
 
@@ -94,23 +95,26 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    
     @Transactional(readOnly = true)
     public Page<TicketDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Tickets");
-        
-        if(SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ANIMATEUR_CENTRAL))
-        	return ticketRepository.findAll(pageable).map(ticketMapper::toDto);
-        
-        if(SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.CONTRIBUTEUR))
-        	return ticketRepository.findAllByContributor(pageable, SecurityUtils.getCurrentUserLogin()).map(ticketMapper::toDto);
-       
-       //if(SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.RELAIS_CENTRAL))
-        	//return ticketRepository.findAllByEntityID(pageable, directionRegionaleService.getOneByUser(SecurityUtils.getCurrentUserLogin()).map(ticketMapper::toDto)).map(ticketMapper::toDto);
-        
-      //  if(SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.RELAIS_REGIONAL))
-      //  	return ticketRepository.findAllByDirectionRegionaleID(pageable, SecurityUtils.getCurrentUserLogin()).map(ticketMapper::toDto);
-        	
+
+        if (SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ANIMATEUR_CENTRAL)) return ticketRepository
+            .findByOrderByStatusTicketDesc(pageable)
+            .map(ticketMapper::toDto);
+
+        if (SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.CONTRIBUTEUR)) return ticketRepository
+            .findAllByContributorOrderByStatusTicketDesc(pageable, SecurityUtils.getCurrentUserLogin())
+            .map(ticketMapper::toDto);
+
+        if (SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.RELAIS_CENTRAL)) return ticketRepository
+            .findAllByCentralRelayAndStatusTicket(pageable, SecurityUtils.getCurrentUserLogin(), Status.CONFIRMED)
+            .map(ticketMapper::toDto);
+
+        if (SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.RELAIS_REGIONAL)) return ticketRepository
+            .findAllByRegionalRelayAndStatusTicket(pageable, SecurityUtils.getCurrentUserLogin(), Status.CONFIRMED)
+            .map(ticketMapper::toDto);
+
         return null;
     }
 

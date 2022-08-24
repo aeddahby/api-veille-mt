@@ -3,8 +3,8 @@ package ma.iam.wissal.veille.repository;
 import java.util.List;
 import java.util.Optional;
 import ma.iam.wissal.veille.domain.Ticket;
+import ma.iam.wissal.veille.domain.enumeration.Status;
 import ma.iam.wissal.veille.service.dto.TicketDTO;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
@@ -29,13 +29,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     }
 
     @Query(
-        value = "select distinct ticket from Ticket ticket left join fetch ticket.directionRegionale left join fetch ticket.category left join fetch ticket.entity",
+        value = "select distinct ticket from Ticket ticket left join fetch ticket.directionRegionale left join fetch ticket.category left join fetch ticket.entity order by ticket.statusTicket",
         countQuery = "select count(distinct ticket) from Ticket ticket"
     )
     Page<Ticket> findAllWithToOneRelationships(Pageable pageable);
 
     @Query(
-        "select distinct ticket from Ticket ticket left join fetch ticket.directionRegionale left join fetch ticket.category left join fetch ticket.entity"
+        "select distinct ticket from Ticket ticket left join fetch ticket.directionRegionale left join fetch ticket.category left join fetch ticket.entity order by ticket.statusTicket"
     )
     List<Ticket> findAllWithToOneRelationships();
 
@@ -44,9 +44,14 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     )
     Optional<Ticket> findOneWithToOneRelationships(@Param("id") Long id);
 
-	Page<Ticket> findAllByContributor(Pageable pageable, Optional<String> currentUserLogin);
+    Page<Ticket> findAllByContributorOrderByStatusTicketDesc(Pageable pageable, Optional<String> currentUserLogin);
 
-/*	Page<Ticket> findAllByEntityID(Pageable pageable, Optional<String> currentUserLogin);*/
+    Page<Ticket> findByOrderByStatusTicketDesc(Pageable pageable);
 
-/*	Page<Ticket> findAllByDirectionRegionaleId(Pageable pageable, Optional<String> currentUserLogin);*/
+    Page<Ticket> findAllByCentralRelayAndStatusTicket(Pageable pageable, Optional<String> currentUserLogin, Status confirmed);
+
+    Page<Ticket> findAllByRegionalRelayAndStatusTicket(Pageable pageable, Optional<String> currentUserLogin, Status confirmed);
+    /*	Page<Ticket> findAllByEntityID(Pageable pageable, Optional<String> currentUserLogin);*/
+
+    /*	Page<Ticket> findAllByDirectionRegionaleId(Pageable pageable, Optional<String> currentUserLogin);*/
 }

@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import ma.iam.wissal.veille.repository.EntityMRepository;
 import ma.iam.wissal.veille.service.EntityMService;
+import ma.iam.wissal.veille.service.HeaderUtil;
 import ma.iam.wissal.veille.service.dto.EntityMDTO;
 import ma.iam.wissal.veille.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 

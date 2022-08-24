@@ -5,13 +5,14 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
 import ma.iam.wissal.veille.domain.enumeration.StateTicket;
 import ma.iam.wissal.veille.domain.enumeration.Status;
 import ma.iam.wissal.veille.repository.TicketRepository;
+import ma.iam.wissal.veille.security.AuthoritiesConstants;
 import ma.iam.wissal.veille.security.SecurityUtils;
 import ma.iam.wissal.veille.service.AttachmentService;
 import ma.iam.wissal.veille.service.DirectionRegionaleService;
+import ma.iam.wissal.veille.service.HeaderUtil;
 import ma.iam.wissal.veille.service.TicketService;
 import ma.iam.wissal.veille.service.dto.AttachmentDTO;
 import ma.iam.wissal.veille.service.dto.TicketDTO;
@@ -26,7 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
@@ -39,7 +39,7 @@ public class TicketResource {
 
     private final Logger log = LoggerFactory.getLogger(TicketResource.class);
 
-    private static final String ENTITY_NAME = "ticket";
+    private static final String ENTITY_NAME = "Remontée";
 
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
@@ -47,13 +47,17 @@ public class TicketResource {
     private final TicketService ticketService;
 
     private final TicketRepository ticketRepository;
-    
+
     private final DirectionRegionaleService directionRegionaleService;
-    
+
     private final AttachmentService attachmentService;
 
-    public TicketResource(TicketService ticketService, TicketRepository ticketRepository, DirectionRegionaleService directionRegionaleService
-    		, AttachmentService attachmentService) {
+    public TicketResource(
+        TicketService ticketService,
+        TicketRepository ticketRepository,
+        DirectionRegionaleService directionRegionaleService,
+        AttachmentService attachmentService
+    ) {
         this.ticketService = ticketService;
         this.ticketRepository = ticketRepository;
         this.directionRegionaleService = directionRegionaleService;
@@ -77,14 +81,14 @@ public class TicketResource {
         ticketDTO.setDirectionRegionale(directionRegionaleService.getOneByUser(SecurityUtils.getCurrentUserLogin().get()).get());
         ticketDTO.setStateTicket(StateTicket.OPENED);
         ticketDTO.setStatusTicket(Status.CREATED);
-        
+
         AttachmentDTO attachmentDTO = new AttachmentDTO();
         attachmentDTO.setAttach(ticketDTO.getAttach());
         attachmentDTO.setAttachContentType(ticketDTO.getAttachContentType());
         TicketDTO result = ticketService.save(ticketDTO);
         attachmentDTO.setTicket(result);
         attachmentService.save(attachmentDTO);
-        
+
         return ResponseEntity
             .created(new URI("/api/tickets/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
@@ -117,12 +121,22 @@ public class TicketResource {
         if (!ticketRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
-        
+        if (ticketDTO.getStatusTicket() != Status.CREATED && SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.CONTRIBUTEUR)) {
+            throw new BadRequestAlertException("Vous n'avez pas le droit de modification", ENTITY_NAME, "idnotfound");
+        }
         TicketDTO result = ticketService.update(ticketDTO);
         Optional<AttachmentDTO> attachmentDTO = attachmentService.findOneByTicket(ticketDTO);
-        attachmentDTO.get().setAttach(ticketDTO.getAttach());
-        attachmentDTO.get().setAttachContentType(ticketDTO.getAttachContentType());
-        attachmentService.update(attachmentDTO.get());
+        if (!attachmentDTO.isEmpty()) {
+            attachmentDTO.get().setAttach(ticketDTO.getAttach());
+            attachmentDTO.get().setAttachContentType(ticketDTO.getAttachContentType());
+            attachmentService.update(attachmentDTO.get());
+        } else {
+            AttachmentDTO att01 = new AttachmentDTO();
+            att01.setAttach(ticketDTO.getAttach());
+            att01.setAttachContentType(ticketDTO.getAttachContentType());
+            att01.setTicket(result);
+            attachmentService.save(att01);
+        }
 
         return ResponseEntity
             .ok()
@@ -185,6 +199,9 @@ public class TicketResource {
         } else {
             page = ticketService.findAll(pageable);
         }
+        if (page == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -199,9 +216,11 @@ public class TicketResource {
     public ResponseEntity<TicketDTO> getTicket(@PathVariable Long id) {
         log.debug("REST request to get Ticket : {}", id);
         Optional<TicketDTO> ticketDTO = ticketService.findOne(id);
-        Optional<AttachmentDTO> attachmentDTO  = attachmentService.findOneByTicket(ticketDTO.get());
-        ticketDTO.get().setAttach(attachmentDTO.get().getAttach());
-        ticketDTO.get().setAttachContentType(attachmentDTO.get().getAttachContentType());
+        Optional<AttachmentDTO> attachmentDTO = attachmentService.findOneByTicket(ticketDTO.get());
+        if (!attachmentDTO.isEmpty()) {
+            ticketDTO.get().setAttach(attachmentDTO.get().getAttach());
+            ticketDTO.get().setAttachContentType(attachmentDTO.get().getAttachContentType());
+        }
         return ResponseUtil.wrapOrNotFound(ticketDTO);
     }
 

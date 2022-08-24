@@ -10,6 +10,7 @@ import ma.iam.wissal.veille.config.Constants;
 import ma.iam.wissal.veille.domain.User;
 import ma.iam.wissal.veille.repository.UserRepository;
 import ma.iam.wissal.veille.security.AuthoritiesConstants;
+import ma.iam.wissal.veille.service.HeaderUtil;
 import ma.iam.wissal.veille.service.MailService;
 import ma.iam.wissal.veille.service.UserService;
 import ma.iam.wissal.veille.service.dto.AdminUserDTO;
@@ -28,7 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
