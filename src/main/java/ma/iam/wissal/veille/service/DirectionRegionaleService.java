@@ -112,20 +112,22 @@ public class DirectionRegionaleService {
         log.debug("Request to delete DirectionRegionale : {}", id);
         directionRegionaleRepository.deleteById(id);
     }
-    
-    public Optional<DirectionRegionaleDTO> getOneByUser(String user)  {
-    	
-//        return directionRegionaleRepository.getOneByUser(user);
-    	Long directionRegionaleId = null;
-    	switch (user) {
-		case "aicha":
-			directionRegionaleId = 459L;
-			break;
-		case "mouad":
-			directionRegionaleId = 455L;
-		default:
-			break;
-		}
-    	return findOne(directionRegionaleId);
+
+    public Optional<DirectionRegionaleDTO> getOneByUser(String user) {
+        //        return directionRegionaleRepository.getOneByUser(user);
+        Long directionRegionaleId = null;
+        switch (user) {
+            case "e.aicha":
+                directionRegionaleId = 459L;
+                break;
+            case "ik.mouad":
+                directionRegionaleId = 455L;
+                break;
+            case "e.ismail":
+                directionRegionaleId = 454L;
+            default:
+                break;
+        }
+        return findOne(directionRegionaleId);
     }
 }

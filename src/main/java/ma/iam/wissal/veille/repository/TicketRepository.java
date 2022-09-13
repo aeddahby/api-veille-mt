@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.Optional;
 import ma.iam.wissal.veille.domain.Ticket;
 import ma.iam.wissal.veille.domain.enumeration.Status;
+import ma.iam.wissal.veille.service.dto.Statistic;
 import ma.iam.wissal.veille.service.dto.TicketDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -51,7 +53,62 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     Page<Ticket> findAllByCentralRelayAndStatusTicket(Pageable pageable, Optional<String> currentUserLogin, Status confirmed);
 
     Page<Ticket> findAllByRegionalRelayAndStatusTicket(Pageable pageable, Optional<String> currentUserLogin, Status confirmed);
+
     /*	Page<Ticket> findAllByEntityID(Pageable pageable, Optional<String> currentUserLogin);*/
 
-    /*	Page<Ticket> findAllByDirectionRegionaleId(Pageable pageable, Optional<String> currentUserLogin);*/
+    @Query(
+        value = "select  category.name as col1, count(case when pertinence = 1 then 1 else null end)as col2, " +
+        "count(case when pertinence = 0 then 1 else null end)as col3 " +
+        "from ticket " +
+        "inner join category ON ticket.category_id = category.id " +
+        "group by category.name, " +
+        "ticket.category_id, " +
+        "category.id ",
+        nativeQuery = true
+    )
+    List<Statistic> getStatisticsOrderByCategory();
+
+    @Query(
+        value = "select  direction_regionale.name as col1, count(case when pertinence = 1 then 1 else null end) as col2, " +
+        "count(case when pertinence = 0 then 1 else null end) as col3 " +
+        "from ticket " +
+        "inner join direction_regionale ON ticket.direction_regionale_id = direction_regionale.id " +
+        "group by direction_regionale.name, " +
+        "ticket.direction_regionale_id, " +
+        "direction_regionale.id",
+        nativeQuery = true
+    )
+    List<Statistic> getTicketsByDirection();
+
+    @Query(
+        value = "select  contributor as col1, count(case when pertinence = 1 then 1 else null end)as col2, " +
+        "count(case when pertinence = 0 then 1 else null end)as col3 " +
+        "from ticket " +
+        "group by contributor",
+        nativeQuery = true
+    )
+    List<Statistic> getTicketsByContributor();
+
+    @Query(
+        value = "select direction_regionale.name as col1, count(case when state_ticket like 'OPENED' then 1 else null end) as col2, " +
+        "count(case when state_ticket like 'CLOSED' then 1 else null end) as col3 " +
+        "from ticket " +
+        "inner join direction_regionale ON ticket.direction_regionale_id = direction_regionale.id " +
+        "group by direction_regionale.name, " +
+        "ticket.direction_regionale_id, " +
+        "direction_regionale.id",
+        nativeQuery = true
+    )
+    List<Statistic> getTicketsVolumeByDirection();
+
+    @Query(
+        value = "select  category.name col1, count(ticket.CATEGORY_ID) col2 " +
+        "from ticket " +
+        "inner join category ON ticket.category_id = category.id " +
+        "group by category.name, " +
+        "ticket.category_id, " +
+        "category.id",
+        nativeQuery = true
+    )
+    List<Statistic> getTicketsVolumeByCategory();
 }

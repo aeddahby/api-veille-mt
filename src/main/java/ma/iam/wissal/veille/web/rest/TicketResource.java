@@ -77,7 +77,9 @@ public class TicketResource {
         if (ticketDTO.getId() != null) {
             throw new BadRequestAlertException("A new ticket cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        ticketDTO.setContributor(SecurityUtils.getCurrentUserLogin().get());
+        if (ticketDTO.getContributor() == null || ticketDTO.getContributor().isEmpty()) ticketDTO.setContributor(
+            SecurityUtils.getCurrentUserLogin().get()
+        );
         ticketDTO.setDirectionRegionale(directionRegionaleService.getOneByUser(SecurityUtils.getCurrentUserLogin().get()).get());
         ticketDTO.setStateTicket(StateTicket.OPENED);
         ticketDTO.setStatusTicket(Status.CREATED);

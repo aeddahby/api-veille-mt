@@ -4,9 +4,11 @@ import java.util.Optional;
 import ma.iam.wissal.veille.domain.Ticket;
 import ma.iam.wissal.veille.domain.User;
 import ma.iam.wissal.veille.domain.enumeration.Status;
+import ma.iam.wissal.veille.repository.AttachmentRepository;
 import ma.iam.wissal.veille.repository.TicketRepository;
 import ma.iam.wissal.veille.security.AuthoritiesConstants;
 import ma.iam.wissal.veille.security.SecurityUtils;
+import ma.iam.wissal.veille.service.AttachmentService;
 import ma.iam.wissal.veille.service.DirectionRegionaleService;
 import ma.iam.wissal.veille.service.MailService;
 import ma.iam.wissal.veille.service.TicketService;
@@ -32,6 +34,8 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
 
+    private final AttachmentService attachmentService;
+
     private final TicketMapper ticketMapper;
 
     private MailService mailService;
@@ -45,12 +49,14 @@ public class TicketServiceImpl implements TicketService {
         TicketRepository ticketRepository,
         TicketMapper ticketMapper,
         MailService mailService,
-        UserService userService
+        UserService userService,
+        AttachmentService attachmentService
     ) {
         this.ticketRepository = ticketRepository;
         this.ticketMapper = ticketMapper;
         this.mailService = mailService;
         this.userService = userService;
+        this.attachmentService = attachmentService;
     }
 
     @Override
@@ -132,6 +138,8 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public void delete(Long id) {
         log.debug("Request to delete Ticket : {}", id);
+        Optional<Ticket> ticket = ticketRepository.findById(id);
+        ticket.get().getAttachments().forEach(attachement -> attachmentService.delete(attachement.getId()));
         ticketRepository.deleteById(id);
     }
 }
