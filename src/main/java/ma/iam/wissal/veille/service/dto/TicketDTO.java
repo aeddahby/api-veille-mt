@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-
 import javax.persistence.Column;
 import javax.persistence.Lob;
-
 import ma.iam.wissal.veille.domain.Attachment;
 import ma.iam.wissal.veille.domain.enumeration.StateTicket;
 import ma.iam.wissal.veille.domain.enumeration.Status;
@@ -54,12 +52,14 @@ public class TicketDTO implements Serializable {
     private CategoryDTO category;
 
     private EntityMDTO entity;
-    
+
     private List<Attachment> attachments;
-    
+
     private byte[] attach;
 
     private String attachContentType;
+
+    private String commentary;
 
     public Long getId() {
         return id;
@@ -212,24 +212,32 @@ public class TicketDTO implements Serializable {
     public void setEntity(EntityMDTO entity) {
         this.entity = entity;
     }
-    
+
     public byte[] getAttach() {
-		return attach;
-	}
+        return attach;
+    }
 
-	public void setAttach(byte[] attach) {
-		this.attach = attach;
-	}
+    public void setAttach(byte[] attach) {
+        this.attach = attach;
+    }
 
-	public String getAttachContentType() {
-		return attachContentType;
-	}
+    public String getAttachContentType() {
+        return attachContentType;
+    }
 
-	public void setAttachContentType(String attachContentType) {
-		this.attachContentType = attachContentType;
-	}
+    public void setAttachContentType(String attachContentType) {
+        this.attachContentType = attachContentType;
+    }
 
-	@Override
+    public String getCommentary() {
+        return commentary;
+    }
+
+    public void setCommentary(String commentary) {
+        this.commentary = commentary;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

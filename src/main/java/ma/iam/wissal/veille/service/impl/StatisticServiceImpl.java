@@ -1,5 +1,7 @@
 package ma.iam.wissal.veille.service.impl;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import ma.iam.wissal.veille.repository.TicketRepository;
 import ma.iam.wissal.veille.service.StatisticService;
@@ -13,27 +15,27 @@ public class StatisticServiceImpl implements StatisticService {
     @Autowired
     TicketRepository ticketRepository;
 
-    public List<Statistic> getStatisticsOrderByCategory() {
-        return ticketRepository.getStatisticsOrderByCategory();
+    public List<Statistic> getStatisticsOrderByCategory(LocalDate startDate, LocalDate finishDate) {
+        return ticketRepository.getStatisticsOrderByCategory(startDate, finishDate);
     }
 
     @Override
-    public List<Statistic> getTicketsByDirection() {
-        return ticketRepository.getTicketsByDirection();
+    public List<Statistic> getTicketsByDirection(Instant startDate, Instant finishDate) {
+        return ticketRepository.getTicketsByDirection(startDate, finishDate);
     }
 
     @Override
-    public List<Statistic> getTicketsByContributor() {
-        return ticketRepository.getTicketsByContributor();
+    public List<Statistic> getTicketsByContributor(Instant startDate, Instant finishDate) {
+        return ticketRepository.getTicketsByContributor(startDate, finishDate);
     }
 
     @Override
-    public List<Statistic> getTicketsVolumeByDirection() {
-        return ticketRepository.getTicketsVolumeByDirection();
+    public List<Statistic> getTicketsVolumeByDirection(Instant startDate, Instant finishDate) {
+        return ticketRepository.getTicketsVolumeByDirection(startDate, finishDate);
     }
 
     @Override
-    public List<Statistic> getTicketsVolumeByCategory() {
-        return ticketRepository.getTicketsVolumeByCategory();
+    public List<Statistic> getTicketsVolumeByCategory(Instant startDate, Instant finishDate) {
+        return ticketRepository.getTicketsVolumeByCategory(startDate, finishDate);
     }
 }

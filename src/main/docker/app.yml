@@ -8,7 +8,6 @@ services:
       - SPRING_PROFILES_ACTIVE=prod,api-docs
       - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
       - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@api_veille_mt-oracle:1521:api_veille_mt
-      - SPRING_LIQUIBASE_URL=jdbc:oracle:thin:@api_veille_mt-oracle:1521:api_veille_mt
       - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
     # If you want to expose these ports outside your dev PC,
     # remove the "127.0.0.1:" prefix

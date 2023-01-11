@@ -32,16 +32,13 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:oracle:thin:@10.96.13.226:1521:wisbdqua
-    username: lportal
-    password: latrop$2012
+    url: jdbc:oracle:thin:@10.96.8.13:1521:wissalrec
+    username: wissalbdd
+    password: wissal23mt
     hikari:
       poolName: Hikari
       auto-commit: false
-  jpa:
-  liquibase:
-    # Remove 'faker' if you do not want the sample data to be loaded automatically
-    contexts: dev, faker
+
   mail:
     host: smtp.mailtrap.io
     port: 2525
@@ -74,8 +71,7 @@ spring:
         enabled: true
 
 server:
-  port: 8080
-
+  port: 8081
 # ===================================================================
 # JHipster specific properties
 #

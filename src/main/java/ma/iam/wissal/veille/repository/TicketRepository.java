@@ -1,16 +1,17 @@
 package ma.iam.wissal.veille.repository;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import ma.iam.wissal.veille.domain.Ticket;
 import ma.iam.wissal.veille.domain.enumeration.Status;
 import ma.iam.wissal.veille.service.dto.Statistic;
-import ma.iam.wissal.veille.service.dto.TicketDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -61,12 +62,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
         "count(case when pertinence = 0 then 1 else null end)as col3 " +
         "from ticket " +
         "inner join category ON ticket.category_id = category.id " +
+        "and creation_date >= :startDate and creation_date <= :finishDate " +
         "group by category.name, " +
         "ticket.category_id, " +
         "category.id ",
         nativeQuery = true
     )
-    List<Statistic> getStatisticsOrderByCategory();
+    List<Statistic> getStatisticsOrderByCategory(@Param("startDate") LocalDate startDate, @Param("finishDate") LocalDate finishDate);
 
     @Query(
         value = "select  direction_regionale.name as col1, count(case when pertinence = 1 then 1 else null end) as col2, " +
@@ -78,7 +80,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
         "direction_regionale.id",
         nativeQuery = true
     )
-    List<Statistic> getTicketsByDirection();
+    List<Statistic> getTicketsByDirection(Instant startDate, Instant finishDate);
 
     @Query(
         value = "select  contributor as col1, count(case when pertinence = 1 then 1 else null end)as col2, " +
@@ -87,7 +89,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
         "group by contributor",
         nativeQuery = true
     )
-    List<Statistic> getTicketsByContributor();
+    List<Statistic> getTicketsByContributor(Instant startDate, Instant finishDate);
 
     @Query(
         value = "select direction_regionale.name as col1, count(case when state_ticket like 'OPENED' then 1 else null end) as col2, " +
@@ -99,7 +101,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
         "direction_regionale.id",
         nativeQuery = true
     )
-    List<Statistic> getTicketsVolumeByDirection();
+    List<Statistic> getTicketsVolumeByDirection(Instant startDate, Instant finishDate);
 
     @Query(
         value = "select  category.name col1, count(ticket.CATEGORY_ID) col2 " +
@@ -110,5 +112,5 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
         "category.id",
         nativeQuery = true
     )
-    List<Statistic> getTicketsVolumeByCategory();
+    List<Statistic> getTicketsVolumeByCategory(Instant startDate, Instant finishDate);
 }

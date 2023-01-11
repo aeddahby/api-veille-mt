@@ -71,6 +71,9 @@ public class Ticket implements Serializable {
     @Column(name = "pertinence")
     private Boolean pertinence;
 
+    @Column(name = "commentary")
+    private String commentary;
+
     @OneToOne
     @JoinColumn(unique = false)
     private DirectionRegionale directionRegionale;
@@ -295,6 +298,14 @@ public class Ticket implements Serializable {
 
     public void setPertinence(Boolean pertinence) {
         this.pertinence = pertinence;
+    }
+
+    public String getCommentary() {
+        return commentary;
+    }
+
+    public void setCommentary(String commentary) {
+        this.commentary = commentary;
     }
 
     public DirectionRegionale getDirectionRegionale() {
